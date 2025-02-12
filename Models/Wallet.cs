@@ -9,6 +9,8 @@ namespace api.Models
     {
         public int Id { get; set; }
         public decimal Amount { get; set; }
+        public DateTime CreatedOn { get; set; } = DateTime.Now;
+    
         public List<WalletTransaction> WalletTransactions { get; set; } = new List<WalletTransaction>();
     }
 }
