@@ -45,8 +45,8 @@ namespace api.Controllers
         public async Task<IActionResult> Create([FromBody] CreateWalletRequestDto walletDto)
         {
             var walletModel = walletDto.ToWalletFromCreateDto();
-           await _context.Wallets.AddAsync(walletModel);
-           await _context.SaveChangesAsync();
+            await _context.Wallets.AddAsync(walletModel);
+            await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
         }
 
