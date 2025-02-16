@@ -9,6 +9,7 @@ using api.Dtos.Wallet;
 using Microsoft.EntityFrameworkCore;
 using api.Interfaces;
 using api.Models;
+using api.Dtos.WalletTransaction;
 
 namespace api.Controllers
 {
@@ -46,7 +47,7 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateWalletRequestDto walletDto)
+        public async Task<IActionResult> Create([FromBody] Dtos.Wallet.CreateWalletRequestDto walletDto)
         {
             var walletModel = walletDto.ToWalletFromCreateDto();
             await _context.Wallets.AddAsync(walletModel);
@@ -85,58 +86,5 @@ namespace api.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
-
-        [HttpPost]
-        [Route("transfer")]
-        public async Task<IActionResult> TransferFunds([FromBody] Dtos.WalletTransaction.WalletTransferRequestDto transferDto)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            
-            try
-            {
-                // 1. Fetch sender and receiver wallets
-                var senderWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == transferDto.SenderId);
-                var receiverWallet = await _context.Wallets.FirstOrDefaultAsync(w => w.UserId == transferDto.ReceiverId);
-
-                if (senderWallet == null || receiverWallet == null)
-                {
-                    return BadRequest(new { message = "Sender or receiver wallet not found." });
-                }
-
-                // 2. Validate sender balance
-                if (senderWallet.Amount < transferDto.Amount)
-                {
-                    return BadRequest(new { message = "Insufficient balance." });
-                }
-
-                // 3. Perform transfer
-                senderWallet.Amount -= transferDto.Amount;
-                receiverWallet.Amount += transferDto.Amount;
-
-                // 4. Create transaction record
-                WalletTransaction transactionRecord = new()
-                {
-                    TransactionAmount = transferDto.Amount,
-                    SenderId = transferDto.SenderId.ToString(),
-                    RecieverId = transferDto.ReceiverId.ToString(),
-                    WalletId = senderWallet.Id.ToString(),
-                    CreatedOn = DateTime.UtcNow
-                };
-
-                // 5. Save to database
-                _context.WalletTransactions.Add(transactionRecord);
-                await _context.SaveChangesAsync();
-                
-                await transaction.CommitAsync(); // Commit transaction
-
-                return Ok(new { message = "Transfer successful." });
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync(); // Rollback in case of error
-                return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
-            }
-        }
-
     }
 }
