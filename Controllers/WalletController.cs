@@ -11,10 +11,16 @@ namespace api.Controllers
     [ApiController]
     public class WalletController : ControllerBase
     {
-        private readonly ApplicationDBContext _context;
+        private readonly ApplicationDBContext _context; //prevent being changed
         public WalletController(ApplicationDBContext context)
         {
-            
+            _context = context;
+        }
+
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+            var wallets = _context.Wallets.ToList();
         }
     }
 }
