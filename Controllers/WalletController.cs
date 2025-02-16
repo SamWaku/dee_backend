@@ -20,7 +20,8 @@ namespace api.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var wallets = _context.Wallets.ToList();
+            var wallets = _context.Wallets.ToList(); //defered execution... sql completes the de
+            return Ok(wallets);
         }
     }
 }
