@@ -18,5 +18,13 @@ namespace api.Mappers
                 CreatedOn = walletModel.CreatedOn
             };
         }
+
+        public static Wallet ToWalletFromCreateDto(this CreateWalletRequestDto walletDto)
+        {
+            return new Wallet
+            {
+                Amount = walletDto.Amount
+            };
+        }
     }
 }
