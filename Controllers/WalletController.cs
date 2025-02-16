@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using api.Data;
+using api.Mappers;
 
 namespace api.Controllers
 {
@@ -20,7 +21,8 @@ namespace api.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-            var wallets = _context.Wallets.ToList(); //defered execution... sql completes the de
+            var wallets = _context.Wallets.ToList()
+            .Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
             return Ok(wallets);
         }
 
