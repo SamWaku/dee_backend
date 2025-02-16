@@ -40,9 +40,10 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody])
+        public IActionResult Create([FromBody] CreateWalletRequest walletDto)
         {
-            
+            var walletModel = walletDto.ToWalletFromCreateDto();
+            _context.Wallets.Add(walletModel);
         }
     }
 }
