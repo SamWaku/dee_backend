@@ -1,7 +1,9 @@
+using api.Models;
+
 namespace api.Interfaces
 {
-    public class IWalletRepository
+    public interface IWalletRepository
     {
-        
+        Task<List<Wallet>> GetAllAsync();
     }
 }
