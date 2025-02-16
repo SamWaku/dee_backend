@@ -7,6 +7,7 @@ using api.Data;
 using api.Mappers;
 using api.Dtos.Wallet;
 using Microsoft.EntityFrameworkCore;
+using api.Interfaces;
 
 namespace api.Controllers
 {
@@ -15,15 +16,17 @@ namespace api.Controllers
     public class WalletController : ControllerBase
     {
         private readonly ApplicationDBContext _context; //prevent being changed
-        public WalletController(ApplicationDBContext context)
+        private readonly IWalletRepository _walletRepo;
+        public WalletController(ApplicationDBContext context, IWalletRepository walletRepo)
         {
+            _walletRepo = walletRepo;
             _context = context;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var wallets = await _context.Wallets.ToListAsync();
+            var wallets = await _walletRepo.GetAllAsync();
             var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
             return Ok(wallets);
         }
