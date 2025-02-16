@@ -13,7 +13,9 @@ namespace api.Mappers
         {
             return new WalletDto
             {
-
+                Id = walletModel.Id,
+                Amount = walletModel.Amount,
+                CreatedOn = walletModel.CreatedOn
             };
         }
     }
