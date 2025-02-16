@@ -61,7 +61,8 @@ namespace api.Controllers
             }
 
             walletModel.Amount = updateWalletDto.Amount;
-            return Ok(walletModel);
+            _context.SaveChanges();
+            return Ok(walletModel.ToWalletDto());
         }
     }
 }
