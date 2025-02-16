@@ -24,10 +24,17 @@ namespace api.Controllers
             return Ok(wallets);
         }
 
-        [HttpGet({"id"})]
-        public IActionResult GetById([FromRoute] int id)
+        [HttpGet("{id}")]
+        public IActionResult GetById([FromRoute] int id) //model binding
         {
+            var wallet = _context.Wallets.Find(id);
 
+            if (wallet == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(wallet);
         }
     }
 }
