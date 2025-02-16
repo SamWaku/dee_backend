@@ -36,7 +36,7 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            return Ok(wallet);
+            return Ok(wallet.ToWalletDto());
         }
     }
 }
