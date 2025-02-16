@@ -38,5 +38,11 @@ namespace api.Controllers
 
             return Ok(wallet.ToWalletDto());
         }
+
+        [HttpPost]
+        public IActionResult Create([FromBody])
+        {
+            
+        }
     }
 }
