@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using api.Data;
 using api.Mappers;
+using api.Dtos.Wallet;
 
 namespace api.Controllers
 {
@@ -40,10 +41,12 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CreateWalletRequest walletDto)
+        public IActionResult Create([FromBody] CreateWalletRequestDto walletDto)
         {
             var walletModel = walletDto.ToWalletFromCreateDto();
             _context.Wallets.Add(walletModel);
+            _context.SaveChanges();
+            return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
         }
     }
 }
