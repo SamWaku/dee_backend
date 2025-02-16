@@ -52,9 +52,9 @@ namespace api.Controllers
 
         [HttpPut]
         [Route("{id}")]
-        public IActionResult Update([FromRoute] int id, [FromBody] UpdateWalletRequestDto updateWalletDto)
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] UpdateWalletRequestDto updateWalletDto)
         {
-            var walletModel = _context.Wallets.FirstOrDefault(w => w.Id == id);
+            var walletModel = await _context.Wallets.FirstOrDefaultAsync(w => w.Id == id);
 
             if (walletModel == null)
             {
@@ -62,7 +62,7 @@ namespace api.Controllers
             }
 
             walletModel.Amount = updateWalletDto.Amount;
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return Ok(walletModel.ToWalletDto());
         }
 
