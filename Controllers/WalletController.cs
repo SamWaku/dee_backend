@@ -68,7 +68,7 @@ namespace api.Controllers
 
         [HttpDelete]
         [Route("{id}")]
-        public IActionResult Delete([FromRoute] int id)
+        public async  Task<IActionResult> Delete([FromRoute] int id)
         {
             var walletModel = _context.Wallets.FirstOrDefault(x => x.Id == id);
 
@@ -77,8 +77,8 @@ namespace api.Controllers
                 return NotFound();
             }
 
-            _context.Wallets.Remove(walletModel);
-            _context.SaveChanges();
+            _context.Wallets.Remove(walletModel); //dont add an await to the remove function
+            await _context.SaveChangesAsync();
             return NoContent();
         }
     }
