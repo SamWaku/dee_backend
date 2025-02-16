@@ -48,5 +48,20 @@ namespace api.Controllers
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
         }
+
+        [HttpPut]
+        [Route("{id}")]
+        public IActionResult Update([FromRoute] int id, [FromBody] UpdateWalletRequestDto updateWalletDto)
+        {
+            var walletModel = _context.Wallets.FirstOrDefault(w => w.Id == id);
+
+            if (walletModel == null)
+            {
+                return NotFound();
+            }
+
+            walletModel.Amount = updateWalletDto.Amount;
+            return Ok(walletModel);
+        }
     }
 }
