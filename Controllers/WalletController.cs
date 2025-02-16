@@ -64,5 +64,21 @@ namespace api.Controllers
             _context.SaveChanges();
             return Ok(walletModel.ToWalletDto());
         }
+
+        [HttpDelete]
+        [Route("{id}")]
+        public IActionResult Delete([FromRoute] int id)
+        {
+            var walletModel = _context.Wallets.FirstOrDefault(x => x.Id == id);
+
+            if(walletModel == null)
+            {
+                return NotFound();
+            }
+
+            _context.Wallets.Remove(walletModel);
+            _context.SaveChanges();
+            return NoContent();
+        }
     }
 }
