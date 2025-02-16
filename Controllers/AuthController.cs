@@ -45,6 +45,7 @@ namespace api.Controllers
         public async Task<IActionResult> Register(UserRegisterDto userregisterdto)
         {
             Dictionary<string, object> response = [];
+            
             var UserByEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == userregisterdto.Email);
             if (UserByEmail != null)
             {
@@ -52,31 +53,93 @@ namespace api.Controllers
                 response["hint"] = "Account with email or phone number entered already exists!";
                 return BadRequest(response);
             }
-            // 3. Encrypt the password
+
+            // Encrypt the password
             PasswordHasher hasher = new();
             string EncryptedPassword = hasher.EncryptPassword($"{userregisterdto.Password}", "hobbiton@2025!");
+
+            // Create the user model
             User userModel = new()
             {
                 Email = userregisterdto.Email,
                 Username = userregisterdto.Username,
                 Password = EncryptedPassword,
             };
-            // 4. Add user to the DB
+
+            // Start a database transaction
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
             try
             {
+                // Add user to the database
                 await _context.Users.AddAsync(userModel);
                 await _context.SaveChangesAsync();
+
+                // Create a wallet for the user with an initial amount of 0.0
+                Wallet wallet = new()
+                {
+                    UserId = userModel.Id,  // Use the newly created user's ID
+                    Amount = 0.0m,
+                    CreatedOn = DateTime.Now
+                };
+
+                await _context.Wallets.AddAsync(wallet);
+                await _context.SaveChangesAsync();
+
+                // Commit transaction
+                await transaction.CommitAsync();
+
                 response["message"] = "success";
                 response["body"] = userregisterdto;
                 return Ok(response);
             }
             catch (Exception)
             {
+                await transaction.RollbackAsync();
+
                 response["message"] = "fail";
                 response["hint"] = "An error occurred on our side. Try again later";
                 return BadRequest(response);
-            };
+            }
         }
+
+
+        // [HttpPost("register")]
+        // public async Task<IActionResult> Register(UserRegisterDto userregisterdto)
+        // {
+        //     Dictionary<string, object> response = [];
+        //     var UserByEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == userregisterdto.Email);
+        //     if (UserByEmail != null)
+        //     {
+        //         response["message"] = "fail";
+        //         response["hint"] = "Account with email or phone number entered already exists!";
+        //         return BadRequest(response);
+        //     }
+        //     // 3. Encrypt the password
+        //     PasswordHasher hasher = new();
+        //     string EncryptedPassword = hasher.EncryptPassword($"{userregisterdto.Password}", "hobbiton@2025!");
+        //     User userModel = new()
+        //     {
+        //         Email = userregisterdto.Email,
+        //         Username = userregisterdto.Username,
+        //         Password = EncryptedPassword,
+        //     };
+        //     // 4. Add user to the DB
+        //     try
+        //     {
+        //         await _context.Users.AddAsync(userModel);
+        //         await _context.SaveChangesAsync();
+        //         response["message"] = "success";
+        //         response["body"] = userregisterdto;
+        //         return Ok(response);
+        //     }
+        //     catch (Exception)
+        //     {
+        //         response["message"] = "fail";
+        //         response["hint"] = "An error occurred on our side. Try again later";
+        //         return BadRequest(response);
+        //     };
+        // }
 
 
         // public async Task<IActionResult> Register(UserDto user)
