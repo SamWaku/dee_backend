@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using api.Data;
 using api.Mappers;
 using api.Dtos.Wallet;
+using Microsoft.EntityFrameworkCore;
 
 namespace api.Controllers
 {
@@ -20,17 +21,17 @@ namespace api.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var wallets = _context.Wallets.ToList()
-            .Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
+            var wallets = await _context.Wallets.ToListAsync();
+            var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
             return Ok(wallets);
         }
 
         [HttpGet("{id}")]
-        public IActionResult GetById([FromRoute] int id) //model binding
+        public async Task<IActionResult> GetById([FromRoute] int id) //model binding
         {
-            var wallet = _context.Wallets.Find(id);
+            var wallet = await _context.Wallets.FindAsync(id);
 
             if (wallet == null)
             {
@@ -41,11 +42,11 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] CreateWalletRequestDto walletDto)
+        public async Task<IActionResult> Create([FromBody] CreateWalletRequestDto walletDto)
         {
             var walletModel = walletDto.ToWalletFromCreateDto();
-            _context.Wallets.Add(walletModel);
-            _context.SaveChanges();
+           await _context.Wallets.AddAsync(walletModel);
+           await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
         }
 
