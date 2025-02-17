@@ -12,7 +12,7 @@ namespace api.Controllers
 
         public WalletTransactionController(ApplicationDBContext context) => _context = context;
 
-                [HttpPost]
+        [HttpPost]
         [Route("transfer")]
         public async Task<IActionResult> TransferFunds([FromBody] WalletTransferRequestDto transferDto)
         {
@@ -63,6 +63,30 @@ namespace api.Controllers
                 return StatusCode(500, new { message = "An error occurred.", error = ex.Message });
             }
         }
+
+        [HttpGet("wallet-transactions/{userId}")]
+        public async Task<IActionResult> GetUserTransactions(int userId)
+        {
+            var transactions = await _context.WalletTransactions
+                .Where(t => t.SenderId == userId.ToString() || t.RecieverId == userId.ToString())
+                .Select(t => new WalletTransactionDto
+                {
+                    Id = t.Id,
+                    TransactionAmount = t.TransactionAmount,
+                    SenderId = t.SenderId,
+                    RecieverId = t.RecieverId,
+                    WalletId = t.WalletId
+                })
+                .ToListAsync();
+
+            if (!transactions.Any())
+            {
+                return NotFound(new { message = "No transactions found for this user." });
+            }
+
+            return Ok(transactions);
+        }
+
 
     }
 }

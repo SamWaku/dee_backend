@@ -27,5 +27,15 @@ namespace api.Mappers
                 Amount = walletDto.Amount
             };
         }
+
+        public static WalletResponseDto ToWalletResponseDto(this Wallet walletModel)
+    {
+        return new WalletResponseDto
+        {
+            Id = walletModel.Id,
+            Amount = walletModel.Amount,
+            UserId = walletModel.UserId
+        };
+    }
     }
 }

@@ -29,31 +29,69 @@ namespace api.Controllers
         public async Task<IActionResult> GetAll()
         {
             var wallets = await _walletRepo.GetAllAsync();
-            var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
-            return Ok(wallets);
+            
+            var walletDtos = wallets.Select(w => new WalletResponseDto
+            {
+                Id = w.Id,
+                Amount = w.Amount,
+                UserId = w.UserId
+            });
+
+            return Ok(walletDtos);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById([FromRoute] int id) //model binding
+
+        // [HttpGet]
+        // public async Task<IActionResult> GetAll()
+        // {
+        //     var wallets = await _walletRepo.GetAllAsync();
+        //     var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
+        //     return Ok(wallets);
+        // }
+
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetByUserId([FromRoute] int userId)
         {
-            var wallet = await _context.Wallets.FindAsync(id);
+            var wallet = await _context.Wallets
+                .Where(w => w.UserId == userId)
+                .Select(w => new WalletResponseDto
+                {
+                    Id = w.Id,
+                    Amount = w.Amount,
+                    UserId = w.UserId
+                })
+                .FirstOrDefaultAsync();
 
             if (wallet == null)
             {
-                return NotFound();
+                return NotFound(new { message = "No wallet found for this user." });
             }
 
-            return Ok(wallet.ToWalletDto());
+            return Ok(wallet);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Dtos.Wallet.CreateWalletRequestDto walletDto)
-        {
-            var walletModel = walletDto.ToWalletFromCreateDto();
-            await _context.Wallets.AddAsync(walletModel);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
-        }
+
+        // [HttpGet("{id}")]
+        // public async Task<IActionResult> GetById([FromRoute] int id) //model binding
+        // {
+        //     var wallet = await _context.Wallets.FindAsync(id);
+
+        //     if (wallet == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return Ok(wallet.ToWalletDto());
+        // }
+
+        // [HttpPost]
+        // public async Task<IActionResult> Create([FromBody] Dtos.Wallet.CreateWalletRequestDto walletDto)
+        // {
+        //     var walletModel = walletDto.ToWalletFromCreateDto();
+        //     await _context.Wallets.AddAsync(walletModel);
+        //     await _context.SaveChangesAsync();
+        //     return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
+        // }
 
         [HttpPut]
         [Route("{id}")]
