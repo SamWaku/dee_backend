@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace api.Models
 {
@@ -10,6 +11,7 @@ namespace api.Models
         [Required]
         public string? Email { get; set; }
         [Required]
+         [JsonIgnore]
         public string? Password { get; set; }
         public DateTime DateTime{ get; set; } = DateTime.UtcNow;
 

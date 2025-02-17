@@ -5,6 +5,11 @@ using api.Utils;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using api.Migrations;
 
 namespace api.Controllers
 {
@@ -14,35 +19,64 @@ namespace api.Controllers
 
         public AuthController(ApplicationDBContext context) => _context = context;
 
-        [HttpPost("login")]
+        [HttpPost("api/login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userdto)
         {
-            Dictionary<string, object> response = [];
             var userByEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == userdto.Email);
 
             if (userByEmail == null)
             {
-                response["message"] = "fail";
-                response["hint"] = "credentials mismatch";
-                return BadRequest(response);
+                return BadRequest(new { message = "fail", hint = "credentials mismatch" });
             }
 
             PasswordHasher hasher = new();
             string DecryptPassword = hasher.DecryptPassword($"{userByEmail.Password}", "hobbiton@2025!");
+
             if (DecryptPassword != userdto.Password)
             {
-                response["message"] = "fail";
-                response["hint"] = "credentials mismatch";
-                return BadRequest(response);
+                return BadRequest(new { message = "fail", hint = "credentials mismatch" });
             }
 
+            // Generate a JWT Token (Example)
+            var token = GenerateJwtToken(userByEmail);
 
-            return Ok(response);
-
+            // Return the expected response
+            return Ok(new
+            {
+                userid = userByEmail.Id,
+                email = userByEmail.Email,
+                name = userByEmail.Username, // Adjust field names based on your model
+                token = token
+            });
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(UserRegisterDto userregisterdto)
+
+
+        private string GenerateJwtToken(User user)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("hobbiton@2025!Secretkey"));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty)
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: "http://localhost:5143",
+                audience: "http://localhost:5173/",
+                claims: claims,
+                expires: DateTime.UtcNow.AddHours(12),
+                signingCredentials: credentials
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+
+
+        [HttpPost("api/register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDto userregisterdto)
         {
             Dictionary<string, object> response = [];
             
@@ -90,18 +124,70 @@ namespace api.Controllers
                 await transaction.CommitAsync();
 
                 response["message"] = "success";
-                response["body"] = userregisterdto;
+                // response["body"] = userregisterdto;
                 return Ok(response);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
 
                 response["message"] = "fail";
                 response["hint"] = "An error occurred on our side. Try again later";
+                response["hint"] = ex.InnerException?.Message ?? ex.Message;
                 return BadRequest(response);
             }
         }
+
+        // [HttpGet("api/users")]
+        // // [SwaggerOperation("GetAllUsers")]
+        // public async Task<IActionResult> GetAll(UserRegisterDto userdto)
+        // {
+        //     var users = await _context.Users.FindAsync();
+        //     if (users == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return Ok(users);
+        // }
+
+
+
+        
+        // [HttpPost("api/login")]
+        // public async Task<IActionResult> Login([FromBody] UserLoginDto userdto)
+        // {
+        //     Dictionary<string, object> response = [];
+        //     var userByEmail = await _context.Users.FirstOrDefaultAsync(x => x.Email == userdto.Email);
+
+        //     if (userByEmail == null)
+        //     {
+        //         response["message"] = "fail";
+        //         response["hint"] = "credentials mismatch";
+        //         return BadRequest(response);
+        //     }
+
+        //     PasswordHasher hasher = new();
+        //     string DecryptPassword = hasher.DecryptPassword($"{userByEmail.Password}", "hobbiton@2025!");
+        //     if (DecryptPassword != userdto.Password)
+        //     {
+        //         response["message"] = "fail";
+        //         response["hint"] = "credentials mismatch";
+        //         return BadRequest(response);
+        //     }
+
+        //      var token = GenerateJwtToken(userByEmail);
+
+
+        //     return Ok(new
+        //     {
+        //         userid = userByEmail.Id,
+        //         email = userByEmail.Email,
+        //         name = userByEmail.Username, // Adjust field names based on your model
+        //         token = token
+        //     });
+
+        // }
 
 
         // [HttpPost("register")]
