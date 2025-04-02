@@ -97,25 +97,26 @@ namespace api.Controllers
             return NoContent();
         }
 
-        [HttpGet]
+       [HttpGet]
         [Route("export")]
         [ProducesResponseType(typeof(FileResult), 200)]
         public async Task<IActionResult> ExportWalletReport()
         {
             var wallets = await _context.Wallets.ToListAsync();
 
-            using var memoryStream = new MemoryStream();
-            using var streamWriter = new StreamWriter(memoryStream);
-            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
-            
+            var memoryStream = new MemoryStream();
+            using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))  // Prevent disposal
+            using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+            {
+                csvWriter.WriteRecords(wallets);
+                await streamWriter.FlushAsync();
+            }
 
-            csvWriter.WriteRecords(wallets);
-
-            await streamWriter.FlushAsync();
-            memoryStream.Position = 0;
+            memoryStream.Position = 0; // Reset position before returning
 
             return File(memoryStream, "text/csv", "wallet_report.csv");
         }
+
 
         // [HttpGet]
         // public async Task<IActionResult> GetAll()
