@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "BQBAfC0x8CM=",
+  "dgSpecHash": "olA+MnY6Qhc=",
   "success": true,
   "projectFilePath": "D:\\dev\\deelicious_does_flowers\\dee_backend\\api\\api.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Samue\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\Samue\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",
+    "C:\\Users\\Samue\\.nuget\\packages\\csvhelper\\33.0.1\\csvhelper.33.0.1.nupkg.sha512",
     "C:\\Users\\Samue\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\Samue\\.nuget\\packages\\microsoft.aspnetcore.openapi\\8.0.13\\microsoft.aspnetcore.openapi.8.0.13.nupkg.sha512",
     "C:\\Users\\Samue\\.nuget\\packages\\microsoft.bcl.asyncinterfaces\\6.0.0\\microsoft.bcl.asyncinterfaces.6.0.0.nupkg.sha512",

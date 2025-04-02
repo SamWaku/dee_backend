@@ -10,6 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using api.Interfaces;
 using api.Models;
 using api.Dtos.WalletTransaction;
+using System.Globalization; 
+using System.IO;
+using CsvHelper;
 
 namespace api.Controllers
 {
@@ -41,14 +44,6 @@ namespace api.Controllers
         }
 
 
-        // [HttpGet]
-        // public async Task<IActionResult> GetAll()
-        // {
-        //     var wallets = await _walletRepo.GetAllAsync();
-        //     var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
-        //     return Ok(wallets);
-        // }
-
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUserId([FromRoute] int userId)
         {
@@ -69,29 +64,6 @@ namespace api.Controllers
 
             return Ok(wallet);
         }
-
-
-        // [HttpGet("{id}")]
-        // public async Task<IActionResult> GetById([FromRoute] int id) //model binding
-        // {
-        //     var wallet = await _context.Wallets.FindAsync(id);
-
-        //     if (wallet == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     return Ok(wallet.ToWalletDto());
-        // }
-
-        // [HttpPost]
-        // public async Task<IActionResult> Create([FromBody] Dtos.Wallet.CreateWalletRequestDto walletDto)
-        // {
-        //     var walletModel = walletDto.ToWalletFromCreateDto();
-        //     await _context.Wallets.AddAsync(walletModel);
-        //     await _context.SaveChangesAsync();
-        //     return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
-        // }
 
         [HttpPut]
         [Route("{id}")]
@@ -124,5 +96,55 @@ namespace api.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+
+        [HttpGet]
+        [Route("export")]
+        [ProducesResponseType(typeof(FileResult), 200)]
+        public async Task<IActionResult> ExportWalletReport()
+        {
+            var wallets = await _context.Wallets.ToListAsync();
+
+            using var memoryStream = new MemoryStream();
+            using var streamWriter = new StreamWriter(memoryStream);
+            using var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture);
+            
+
+            csvWriter.WriteRecords(wallets);
+
+            await streamWriter.FlushAsync();
+            memoryStream.Position = 0;
+
+            return File(memoryStream, "text/csv", "wallet_report.csv");
+        }
+
+        // [HttpGet]
+        // public async Task<IActionResult> GetAll()
+        // {
+        //     var wallets = await _walletRepo.GetAllAsync();
+        //     var walletDto = wallets.Select(w => w.ToWalletDto()); //defered execution... sql completes the fetch. Additionally we have mapped the DTO here
+        //     return Ok(wallets);
+        // }
+
+        // [HttpGet("{id}")]
+        // public async Task<IActionResult> GetById([FromRoute] int id) //model binding
+        // {
+        //     var wallet = await _context.Wallets.FindAsync(id);
+
+        //     if (wallet == null)
+        //     {
+        //         return NotFound();
+        //     }
+
+        //     return Ok(wallet.ToWalletDto());
+        // }
+
+        // [HttpPost]
+        // public async Task<IActionResult> Create([FromBody] Dtos.Wallet.CreateWalletRequestDto walletDto)
+        // {
+        //     var walletModel = walletDto.ToWalletFromCreateDto();
+        //     await _context.Wallets.AddAsync(walletModel);
+        //     await _context.SaveChangesAsync();
+        //     return CreatedAtAction(nameof(GetById), new {id = walletModel.Id}, walletModel.ToWalletDto());
+        // }
     }
 }
