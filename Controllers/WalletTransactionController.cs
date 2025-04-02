@@ -1,19 +1,31 @@
 using api.Data;
 using api.Dtos.WalletTransaction;
+using api.Interfaces;
+using api.Migrations;
 using api.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CsvHelper;
+using System.Globalization;
 
 namespace api.Controllers
 {
+    [Route("api/wallet-transactions")]
+    [ApiController]
     public class WalletTransactionController : ControllerBase
     {
         private readonly ApplicationDBContext _context;
 
-        public WalletTransactionController(ApplicationDBContext context) => _context = context;
+        private readonly IWalletTransactionRepository _walletTransactionRepo;
+
+        public WalletTransactionController(ApplicationDBContext context, IWalletTransactionRepository walletTransaction)
+        {
+            _walletTransactionRepo = walletTransaction;
+            _context = context;
+        } 
 
         [HttpPost]
-        [Route("transfer")]
+        // [Route("transfer")]
         public async Task<IActionResult> TransferFunds([FromBody] WalletTransferRequestDto transferDto)
         {
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -85,6 +97,26 @@ namespace api.Controllers
             }
 
             return Ok(transactions);
+        }
+
+        [HttpGet]
+        [Route("export")]
+        [ProducesResponseType(typeof(FileResult), 200)]
+        public async Task<IActionResult> ExportUserTransactions()
+        {
+            var transactions = await _context.WalletTransactions.ToListAsync();
+
+            var memoryStream = new MemoryStream();
+            using (var streamWriter = new StreamWriter(memoryStream, leaveOpen: true))
+            using (var csvWriter = new CsvWriter(streamWriter, CultureInfo.InvariantCulture))
+            {
+                csvWriter.WriteRecords(transactions);
+                await streamWriter.FlushAsync();
+            }
+
+            memoryStream.Position = 0;
+
+            return File(memoryStream, "text/csv", "wallet_transactions.csv");
         }
 
 

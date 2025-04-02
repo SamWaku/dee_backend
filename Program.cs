@@ -18,6 +18,7 @@ builder.Services.AddDbContext<ApplicationDBContext>(options => {
 
 builder.Services.AddScoped<IWalletRepository, WalletRepository>(); //wiring up our services
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IWalletTransactionRepository, WalletTransactionRepository>();
 
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 
